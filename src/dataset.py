@@ -8,6 +8,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import random_split
 import pandas as pd
 import os 
+# Make sure there is data file
 os.makedirs("data", exist_ok=True)
 
 # Transform: just convert to tensor (normalize manually)
