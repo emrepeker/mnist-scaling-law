@@ -10,6 +10,8 @@ import pandas as pd
 import os 
 # Make sure there is data file
 os.makedirs("data", exist_ok=True)
+# Fixed Generator for reproducibility
+generator = torch.Generator().manual_seed(31)
 
 # Transform: just convert to tensor (normalize manually)
 transform = transforms.Compose([
@@ -24,16 +26,30 @@ train_dataset = datasets.MNIST(
     transform=transform
 )
 
+train_size = 50_000
+# Split train test 50k 10k
+train_set, test_set = random_split(train_dataset,
+                                   [train_size, len(train_dataset) - train_size],
+                                   generator=generator) 
+
+
+
+
+# Get Test.csv
+rows = []
+for i in range(len(train_dataset) - train_size):
+    img, label = test_set[i]
+    img = img.view(-1).numpy() # Flatten 28x28 -> 784
+    rows.append([label]+ img.tolist()) # [0,1] since ToTensor divides by 255
+df = pd.DataFrame(rows)
+df.to_csv(f"data/mnist_test_{len(train_dataset) - train_size}.csv", index = False)
+
 # Subset sizes
-subset_sizes = [1000, 5000, 10000, 20000, 40000, 60000]
-
-# Fixed Generator for reproducibility 
-generator = torch.Generator().manual_seed(31)
-
-# Create and save CSV subsets
+subset_sizes = [1000, 5000, 10000, 20000, 40000, 50000]
+# Create and save CSV train subsets
 for size in subset_sizes:
-    subset,_= random_split(train_dataset,
-                           [size , len(train_dataset)- size] ,
+    subset,_= random_split(train_set,
+                           [size , len(train_set)- size] ,
                            generator=generator)
     
     rows = []
